@@ -107,16 +107,7 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Create release tag
-      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-      run: |
-        cd generated
-        VERSION=$(node -p "require('./package.json').version")
-        echo "Creating tag: v$VERSION"
-        git tag "v$VERSION"
-        git push origin "v$VERSION"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
         
     - name: Upload generated artifacts
       uses: actions/upload-artifact@v4
