@@ -27,6 +27,31 @@ This project generates TypeScript API client code from OpenAPI specifications.
    npm run build
    ```
 
+## CI/CD 自动化
+
+本项目支持自动化的 CI/CD 流水线，当 OpenAPI 规范文件变更时自动生成和发布 API 客户端。
+
+### 快速设置
+
+1. **配置 npm 令牌**：在 GitHub 仓库设置中添加 `NPM_TOKEN` secret
+2. **推送规范文件**：将 OpenAPI 规范文件放在 `specs/` 目录
+3. **自动触发**：推送到主分支时自动执行构建和发布
+
+### CI 脚本
+
+```bash
+# 构建并生成代码
+npm run ci:build
+
+# 发布生成的包
+npm run ci:publish
+
+# 完整的 CI 流程
+npm run ci:full
+```
+
+详细配置请参考 [CI 设置指南](.github/CI_SETUP.md)。
+
 ## Project Structure
 
 ```

@@ -1,5 +1,5 @@
 {
-  "name": "api-generator-cli",
+  "name": "@yaoyaoyu/openapi-project-cli",
   "version": "1.0.0",
   "description": "CLI tool for generating API code projects",
   "main": "dist/index.js",

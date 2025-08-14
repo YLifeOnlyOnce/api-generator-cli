@@ -1,0 +1,90 @@
+name: API Code Generation and Publishing
+
+on:
+  push:
+    paths:
+      - 'specs/**/*.yaml'
+      - 'specs/**/*.yml'
+      - 'specs/**/*.json'
+    branches:
+      - main
+      - master
+  pull_request:
+    paths:
+      - 'specs/**/*.yaml'
+      - 'specs/**/*.yml'
+      - 'specs/**/*.json'
+    branches:
+      - main
+      - master
+
+jobs:
+  generate-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build project
+      run: npm run build
+      
+    - name: Generate API code
+      run: npm run generate
+      
+    - name: Install generated package dependencies
+      run: |
+        cd generated
+        npm ci
+        
+    - name: Build generated package
+      run: |
+        cd generated
+        npm run build
+        
+    - name: Run tests (if available)
+      run: |
+        if [ -f "generated/package.json" ] && grep -q '"test"' generated/package.json; then
+          cd generated
+          npm test
+        fi
+      continue-on-error: true
+      
+    - name: Publish to npm (on main branch)
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      run: |
+        cd generated
+        # 自动更新版本号
+        npm version patch --no-git-tag-version
+        # 发布到 npm
+        npm publish --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        
+    - name: Create release tag
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      run: |
+        cd generated
+        VERSION=$(node -p "require('./package.json').version")
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git tag "v$VERSION"
+        git push origin "v$VERSION"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Upload generated artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: generated-api-client
+        path: generated/
+        retention-days: 30

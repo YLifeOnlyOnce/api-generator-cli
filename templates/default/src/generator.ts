@@ -1,22 +1,22 @@
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import SwaggerParser from '@apidevtools/swagger-parser';
-import Handlebars from 'handlebars';
-import chalk from 'chalk';
+import * as fs from "fs-extra";
+import * as path from "path";
+import SwaggerParser from "@apidevtools/swagger-parser";
+import Handlebars from "handlebars";
+import chalk from "chalk";
 import {
   OpenApiSpec,
   ApiEndpoint,
   GeneratorConfig,
   GeneratedFile,
-  Schema
-} from './types';
+  Schema,
+} from "./types";
 import {
   pathToTypeName,
   capitalize,
   schemaToTypeScript,
   generateMethodName,
-  ensureDir
-} from './utils';
+  ensureDir,
+} from "./utils";
 
 export class ApiGenerator {
   private config: GeneratorConfig;
@@ -34,7 +34,7 @@ export class ApiGenerator {
   async loadSpec(specPath: string): Promise<void> {
     try {
       console.log(chalk.blue(`Loading OpenAPI spec from: ${specPath}`));
-      this.spec = await SwaggerParser.parse(specPath) as OpenApiSpec;
+      this.spec = (await SwaggerParser.parse(specPath)) as OpenApiSpec;
       this.parseEndpoints();
       this.parseSchemas();
       console.log(chalk.green(`✅ Loaded ${this.endpoints.length} endpoints`));
@@ -51,11 +51,11 @@ export class ApiGenerator {
 
     this.endpoints = [];
     Object.entries(this.spec.paths).forEach(([path, pathItem]) => {
-      if (!pathItem || typeof pathItem !== 'object') return;
-      
+      if (!pathItem || typeof pathItem !== "object") return;
+
       Object.entries(pathItem).forEach(([method, operation]) => {
-        if (['get', 'post', 'put', 'delete', 'patch'].includes(method)) {
-          if (operation && typeof operation === 'object') {
+        if (["get", "post", "put", "delete", "patch"].includes(method)) {
+          if (operation && typeof operation === "object") {
             const op = operation as any;
             this.endpoints.push({
               path,
@@ -66,7 +66,7 @@ export class ApiGenerator {
               parameters: op.parameters || [],
               requestBody: op.requestBody,
               responses: op.responses || {},
-              tags: op.tags || []
+              tags: op.tags || [],
             });
           }
         }
@@ -87,10 +87,10 @@ export class ApiGenerator {
    */
   async generate(): Promise<GeneratedFile[]> {
     if (!this.spec) {
-      throw new Error('No OpenAPI spec loaded');
+      throw new Error("No OpenAPI spec loaded");
     }
 
-    console.log(chalk.blue('Generating API code...'));
+    console.log(chalk.blue("Generating API code..."));
 
     const files: GeneratedFile[] = [];
 
@@ -161,26 +161,29 @@ export interface {{capitalize method}}{{pathToTypeName path}}Request {
 {{/each}}`;
 
     // 注册Handlebars helpers
-    Handlebars.registerHelper('toTypeScript', (schema: Schema) => {
+    Handlebars.registerHelper("toTypeScript", (schema: Schema) => {
       return schemaToTypeScript(schema);
     });
 
-    Handlebars.registerHelper('pathToTypeName', pathToTypeName);
-    Handlebars.registerHelper('capitalize', capitalize);
-    Handlebars.registerHelper('isRequired', (key: string, required: string[]) => {
-      return required && required.includes(key);
-    });
-    Handlebars.registerHelper('eq', (a: any, b: any) => a === b);
+    Handlebars.registerHelper("pathToTypeName", pathToTypeName);
+    Handlebars.registerHelper("capitalize", capitalize);
+    Handlebars.registerHelper(
+      "isRequired",
+      (key: string, required: string[]) => {
+        return required && required.includes(key);
+      }
+    );
+    Handlebars.registerHelper("eq", (a: any, b: any) => a === b);
 
     const compiledTemplate = Handlebars.compile(template);
     const content = compiledTemplate({
       schemas: this.schemas,
-      endpoints: this.endpoints
+      endpoints: this.endpoints,
     });
 
     return {
-      path: 'src/types.ts',
-      content
+      path: "src/types.ts",
+      content,
     };
   }
 
@@ -268,26 +271,28 @@ export class ApiClient {
 }`;
 
     // 注册更多helpers
-    Handlebars.registerHelper('generateMethodName', generateMethodName);
-    Handlebars.registerHelper('toLowerCase', (str: string) => str.toLowerCase());
-    Handlebars.registerHelper('hasQueryParams', (parameters: any[]) => {
-      return parameters && parameters.some(p => p.in === 'query');
+    Handlebars.registerHelper("generateMethodName", generateMethodName);
+    Handlebars.registerHelper("toLowerCase", (str: string) =>
+      str.toLowerCase()
+    );
+    Handlebars.registerHelper("hasQueryParams", (parameters: any[]) => {
+      return parameters && parameters.some((p) => p.in === "query");
     });
-    Handlebars.registerHelper('hasHeaderParams', (parameters: any[]) => {
-      return parameters && parameters.some(p => p.in === 'header');
+    Handlebars.registerHelper("hasHeaderParams", (parameters: any[]) => {
+      return parameters && parameters.some((p) => p.in === "header");
     });
 
     const compiledTemplate = Handlebars.compile(template);
-    const baseUrl = this.spec?.servers?.[0]?.url || '';
+    const baseUrl = this.spec?.servers?.[0]?.url || "";
     const content = compiledTemplate({
       endpoints: this.endpoints,
       baseUrl,
-      httpClientImport: this.config.httpClientImport || './http-client'
+      httpClientImport: this.config.httpClientImport || "./http-client",
     });
 
     return {
-      path: 'src/api-client.ts',
-      content
+      path: "src/api-client.ts",
+      content,
     };
   }
 
@@ -416,8 +421,8 @@ async function example() {
 `;
 
     return {
-      path: 'src/http-client.ts',
-      content: template
+      path: "src/http-client.ts",
+      content: template,
     };
   }
 
@@ -425,52 +430,53 @@ async function example() {
    * 生成package.json
    */
   private async generatePackageJson(): Promise<GeneratedFile> {
-    const specTitle = this.spec?.info?.title || 'Generated API Client';
-    const specVersion = this.spec?.info?.version || '1.0.0';
-    const specDescription = this.spec?.info?.description || 'Auto-generated API client from OpenAPI specification';
-    
+    const specTitle = this.spec?.info?.title || "Generated API Client";
+    const specVersion = this.spec?.info?.version || "1.0.0";
+    const specDescription =
+      this.spec?.info?.description ||
+      "Auto-generated API client from OpenAPI specification";
+
     const packageJson = {
-      name: this.config.packageName || specTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+      name:
+        this.config.packageName ||
+        specTitle
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-]/g, ""),
       version: specVersion,
       description: specDescription,
-      main: 'dist/index.js',
-      module: 'dist/index.mjs',
-      types: 'dist/index.d.ts',
-      files: [
-        'dist/**/*',
-        'src/**/*'
-      ],
+      main: "dist/index.js",
+      module: "dist/index.mjs",
+      types: "dist/index.d.ts",
+      files: ["dist/**/*", "src/**/*"],
       scripts: {
-        build: 'tsup',
-        dev: 'tsup --watch',
-        prepublishOnly: 'npm run build'
+        build: "tsup",
+        dev: "tsup --watch",
+        prepublishOnly: "npm run build",
+        "build:publish": "npm run build && npm publish",
+        "version:patch": "npm version patch --no-git-tag-version",
+        "version:minor": "npm version minor --no-git-tag-version",
+        "version:major": "npm version major --no-git-tag-version"
       },
-      keywords: [
-        'api',
-        'client',
-        'openapi',
-        'swagger',
-        'typescript',
-        'axios'
-      ],
-      author: '',
-      license: 'MIT',
+      keywords: ["api", "client", "openapi", "swagger", "typescript", "axios"],
+      author: "",
+      license: "MIT",
       dependencies: {
-        axios: '^1.6.0'
+        axios: "^1.6.0",
       },
       devDependencies: {
-        '@types/node': '^20.0.0',
-        typescript: '^5.0.0',
-        tsup: '^8.5.0'
+        "@types/node": "^20.0.0",
+        typescript: "^5.0.0",
+        tsup: "^8.5.0",
       },
       engines: {
-        node: '>=16'
-      }
+        node: ">=16",
+      },
     };
 
     return {
-      path: 'package.json',
-      content: JSON.stringify(packageJson, null, 2)
+      path: "package.json",
+      content: JSON.stringify(packageJson, null, 2),
     };
   }
 
@@ -480,11 +486,11 @@ async function example() {
   private async generateTsConfig(): Promise<GeneratedFile> {
     const tsConfig = {
       compilerOptions: {
-        target: 'ES2020',
-        lib: ['ES2020'],
-        module: 'CommonJS',
-        outDir: './dist',
-        rootDir: './src',
+        target: "ES2020",
+        lib: ["ES2020"],
+        module: "CommonJS",
+        outDir: "./dist",
+        rootDir: "./src",
         strict: true,
         esModuleInterop: true,
         skipLibCheck: true,
@@ -492,15 +498,15 @@ async function example() {
         declaration: true,
         declarationMap: true,
         sourceMap: true,
-        resolveJsonModule: true
+        resolveJsonModule: true,
       },
-      include: ['src/**/*'],
-      exclude: ['node_modules', 'dist']
+      include: ["src/**/*"],
+      exclude: ["node_modules", "dist"],
     };
 
     return {
-      path: 'tsconfig.json',
-      content: JSON.stringify(tsConfig, null, 2)
+      path: "tsconfig.json",
+      content: JSON.stringify(tsConfig, null, 2),
     };
   }
 
@@ -523,8 +529,8 @@ export default defineConfig({
 `;
 
     return {
-      path: 'tsup.config.ts',
-      content
+      path: "tsup.config.ts",
+      content,
     };
   }
 
@@ -532,10 +538,17 @@ export default defineConfig({
    * 生成README.md
    */
   private async generateReadme(): Promise<GeneratedFile> {
-    const specTitle = this.spec?.info?.title || 'Generated API Client';
-    const specDescription = this.spec?.info?.description || 'Auto-generated API client from OpenAPI specification';
-    const packageName = this.config.packageName || specTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-    
+    const specTitle = this.spec?.info?.title || "Generated API Client";
+    const specDescription =
+      this.spec?.info?.description ||
+      "Auto-generated API client from OpenAPI specification";
+    const packageName =
+      this.config.packageName ||
+      specTitle
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
+
     const content = `# ${specTitle}
 
 ${specDescription}
@@ -623,8 +636,8 @@ MIT
 `;
 
     return {
-      path: 'README.md',
-      content
+      path: "README.md",
+      content,
     };
   }
 
@@ -641,8 +654,8 @@ export { ApiClient } from './api-client';
 `;
 
     return {
-      path: 'src/index.ts',
-      content
+      path: "src/index.ts",
+      content,
     };
   }
 
@@ -655,7 +668,7 @@ export { ApiClient } from './api-client';
     for (const file of files) {
       const fullPath = path.join(this.config.outputDir, file.path);
       ensureDir(path.dirname(fullPath));
-      await fs.writeFile(fullPath, file.content, 'utf8');
+      await fs.writeFile(fullPath, file.content, "utf8");
       console.log(chalk.gray(`  ✓ ${file.path}`));
     }
   }
@@ -664,51 +677,51 @@ export { ApiClient } from './api-client';
    * 构建npm包
    */
   private async buildPackage(): Promise<void> {
-    const { spawn } = require('child_process');
-    
-    console.log(chalk.blue('Installing dependencies...'));
-    
+    const { spawn } = require("child_process");
+
+    console.log(chalk.blue("Installing dependencies..."));
+
     // 先安装依赖
     await new Promise<void>((resolve, reject) => {
-      const installProcess = spawn('npm', ['install'], {
+      const installProcess = spawn("npm", ["install"], {
         cwd: this.config.outputDir,
-        stdio: 'inherit'
+        stdio: "inherit",
       });
-      
-      installProcess.on('close', (code: number | null) => {
+
+      installProcess.on("close", (code: number | null) => {
         if (code === 0) {
           resolve();
         } else {
           reject(new Error(`Install process exited with code ${code}`));
         }
       });
-      
-      installProcess.on('error', (error: Error) => {
+
+      installProcess.on("error", (error: Error) => {
         reject(error);
       });
     });
-    
-    console.log(chalk.blue('Building package...'));
-    
+
+    console.log(chalk.blue("Building package..."));
+
     // 然后构建
     return new Promise((resolve, reject) => {
-      const buildProcess = spawn('npm', ['run', 'build'], {
+      const buildProcess = spawn("npm", ["run", "build"], {
         cwd: this.config.outputDir,
-        stdio: 'inherit'
+        stdio: "inherit",
       });
-      
-      buildProcess.on('close', (code: number | null) => {
-         if (code === 0) {
-           console.log(chalk.green('✅ Package built successfully'));
-           resolve();
-         } else {
-           reject(new Error(`Build process exited with code ${code}`));
-         }
-       });
-       
-       buildProcess.on('error', (error: Error) => {
-         reject(error);
-       });
+
+      buildProcess.on("close", (code: number | null) => {
+        if (code === 0) {
+          console.log(chalk.green("✅ Package built successfully"));
+          resolve();
+        } else {
+          reject(new Error(`Build process exited with code ${code}`));
+        }
+      });
+
+      buildProcess.on("error", (error: Error) => {
+        reject(error);
+      });
     });
   }
 }
