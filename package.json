@@ -1,6 +1,6 @@
 {
   "name": "@yaoyaoyu/openapi-project-cli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "CLI tool for generating API code projects",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
