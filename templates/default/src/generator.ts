@@ -162,7 +162,7 @@ export interface {{capitalize method}}{{pathToTypeName path}}Request {
 
     // 注册Handlebars helpers
     Handlebars.registerHelper("toTypeScript", (schema: Schema) => {
-      return schemaToTypeScript(schema);
+      return new Handlebars.SafeString(schemaToTypeScript(schema));
     });
 
     Handlebars.registerHelper("pathToTypeName", pathToTypeName);
@@ -436,6 +436,22 @@ async function example() {
       this.spec?.info?.description ||
       "Auto-generated API client from OpenAPI specification";
 
+    // Check if package.json already exists and preserve version
+    const existingPackageJsonPath = path.join(this.config.outputDir, "package.json");
+    let currentVersion = specVersion;
+    
+    try {
+      if (await fs.pathExists(existingPackageJsonPath)) {
+        const existingPackageJson = await fs.readJson(existingPackageJsonPath);
+        if (existingPackageJson.version) {
+          currentVersion = existingPackageJson.version;
+          console.log(`Preserving existing version: ${currentVersion}`);
+        }
+      }
+    } catch (error) {
+      console.log(`Using spec version: ${specVersion}`);
+    }
+
     const packageJson = {
       name:
         this.config.packageName ||
@@ -443,7 +459,7 @@ async function example() {
           .toLowerCase()
           .replace(/\s+/g, "-")
           .replace(/[^a-z0-9-]/g, ""),
-      version: specVersion,
+      version: currentVersion,
       description: specDescription,
       main: "dist/index.js",
       module: "dist/index.mjs",

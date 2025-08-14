@@ -90,11 +90,30 @@ npm run ci:full
 
 ## 版本管理
 
+项目使用语义化版本控制 (Semantic Versioning)。版本号格式为 `MAJOR.MINOR.PATCH`。
+
+### 自动版本管理
+
+GitHub Actions 会在每次推送到 main/master 分支时自动处理版本更新：
+
+1. **代码生成阶段**：生成器会检查现有的 `package.json` 文件并保持当前版本号
+2. **发布阶段**：GitHub Actions 自动执行 `npm version patch` 来递增版本号
+3. **提交阶段**：新版本号会被提交回仓库
+
 工作流会自动管理版本号：
 - **自动版本更新**: 每次发布时自动增加 patch 版本号 (例如: 1.0.0 → 1.0.1)
 - **Git 提交**: 版本变更会自动提交到仓库 (带有 `[skip ci]` 标记避免循环触发)
 - **标签创建**: 为每个发布版本创建 git 标签 (例如: v1.0.1)
 - **标签推送**: 自动推送标签到远程仓库
+
+### 版本管理工作流程
+
+1. 开发者修改 OpenAPI 规范文件
+2. 推送到 main/master 分支触发 CI
+3. CI 生成新的 API 代码（保持现有版本号）
+4. CI 自动递增 patch 版本号
+5. CI 发布新版本到 npm
+6. CI 将版本变更提交回仓库
 
 ### 手动版本管理
 
@@ -132,6 +151,16 @@ npm run version:major
    - 如果遇到 `ERR_REQUIRE_ESM` 错误，通常是因为依赖包版本不兼容
    - 确保使用 chalk v4.x 而不是 v5.x（v5+ 仅支持 ESM）
    - 检查 package.json 中的依赖版本是否正确
+
+5. **HTML 转义错误**
+   - 如果生成的 TypeScript 代码中出现 `Record&lt;string, any&gt;` 等 HTML 转义字符
+   - 错误信息：`Unexpected "&"` 或 `Property or signature expected`
+   - 解决方案：在 `src/generator.ts` 中修改 Handlebars helper：
+     ```typescript
+     Handlebars.registerHelper("toTypeScript", (schema: Schema) => {
+       return new Handlebars.SafeString(schemaToTypeScript(schema));
+     });
+     ```
 
 ### 调试步骤
 
