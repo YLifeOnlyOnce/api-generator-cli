@@ -54,7 +54,7 @@ export function schemaToTypeScript(schema: Schema, name?: string): string {
           .join('\n');
         return `{\n${props}\n}`;
       }
-      return '{[key: string]: any}';
+      return 'Record<string, any>';
     default:
       return 'any';
   }

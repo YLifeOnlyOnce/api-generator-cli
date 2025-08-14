@@ -59,24 +59,38 @@ jobs:
         fi
       continue-on-error: true
       
-    - name: Publish to npm (on main branch)
+    - name: Update version and publish to npm (on main branch)
       if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
       run: |
         cd generated
-        # 自动更新版本号
+        # 配置 git 用户信息
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # 自动更新 patch 版本号
         npm version patch --no-git-tag-version
+        
+        # 获取新版本号
+        NEW_VERSION=$(node -p "require('./package.json').version")
+        echo "New version: $NEW_VERSION"
+        
         # 发布到 npm
         npm publish --access public
+        
+        # 提交版本变更到 git
+        git add package.json
+        git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+        git push
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Create release tag
       if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
       run: |
         cd generated
         VERSION=$(node -p "require('./package.json').version")
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+        echo "Creating tag: v$VERSION"
         git tag "v$VERSION"
         git push origin "v$VERSION"
       env:

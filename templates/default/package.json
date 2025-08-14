@@ -14,7 +14,7 @@
     "generate": "node dist/generate.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "ci:build": "npm run build && npm run generate",
-    "ci:publish": "cd generated && npm run build && npm publish --access public",
+    "ci:publish": "cd generated && npm run build && npm version patch && npm publish --access public",
     "ci:full": "npm run ci:build && npm run ci:publish"
   },
   "keywords": ["api", "generator", "openapi", "swagger"],
