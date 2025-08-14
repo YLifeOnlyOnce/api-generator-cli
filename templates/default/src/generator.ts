@@ -111,6 +111,7 @@ export class ApiGenerator {
     files.push(await this.generateTsConfig());
     files.push(await this.generateTsupConfig());
     files.push(await this.generateReadme());
+    files.push(await this.generateGitignore());
 
     // 写入文件
     await this.writeFiles(files);
@@ -655,6 +656,46 @@ MIT
     return {
       path: "README.md",
       content,
+    };
+  }
+
+  /**
+   * 生成.gitignore文件
+   */
+  private async generateGitignore(): Promise<GeneratedFile> {
+    const content = `# Dependencies
+node_modules/
+yarn.lock
+
+# Build artifacts that shouldn't be committed
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Cache
+.cache/
+.npm/
+.eslintcache
+`;
+
+    return {
+      path: '.gitignore',
+      content
     };
   }
 
