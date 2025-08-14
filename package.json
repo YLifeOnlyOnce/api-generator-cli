@@ -1,6 +1,6 @@
 {
   "name": "@yaoyaoyu/openapi-project-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "CLI tool for generating API code projects",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,13 @@
     "dev": "tsup --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["api", "generator", "cli", "openapi", "swagger"],
+  "keywords": [
+    "api",
+    "generator",
+    "cli",
+    "openapi",
+    "swagger"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
