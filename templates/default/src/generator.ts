@@ -463,6 +463,7 @@ async function example() {
       license: "MIT",
       dependencies: {
         axios: "^1.6.0",
+        chalk: "^4.1.2",
       },
       devDependencies: {
         "@types/node": "^20.0.0",

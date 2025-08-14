@@ -128,6 +128,11 @@ npm run version:major
    - 手动更新 `generated/package.json` 中的版本号
    - 或删除 npm 上的对应版本
 
+4. **ESM/CommonJS 兼容性错误**
+   - 如果遇到 `ERR_REQUIRE_ESM` 错误，通常是因为依赖包版本不兼容
+   - 确保使用 chalk v4.x 而不是 v5.x（v5+ 仅支持 ESM）
+   - 检查 package.json 中的依赖版本是否正确
+
 ### 调试步骤
 
 1. 查看 GitHub Actions 日志
