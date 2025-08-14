@@ -1,0 +1,34 @@
+{
+  "name": "api-project-template",
+  "version": "1.0.0",
+  "description": "API code generator project template",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "generated/dist/**/*",
+    "generated/src/**/*"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "generate": "node dist/generate.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["api", "generator", "openapi", "swagger"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0",
+    "handlebars": "^4.7.8",
+    "fs-extra": "^11.3.1",
+    "chalk": "^4.1.2",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/axios": "^0.14.0",
+    "typescript": "^5.0.0",
+    "tsup": "^8.5.0"
+  }
+}
