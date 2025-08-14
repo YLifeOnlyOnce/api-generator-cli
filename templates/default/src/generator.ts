@@ -112,6 +112,7 @@ export class ApiGenerator {
     files.push(await this.generateTsupConfig());
     files.push(await this.generateReadme());
     files.push(await this.generateGitignore());
+    files.push(await this.generateNpmignore());
 
     // 写入文件
     await this.writeFiles(files);
@@ -468,7 +469,7 @@ async function example() {
       main: "dist/index.js",
       module: "dist/index.mjs",
       types: "dist/index.d.ts",
-      files: ["dist/**/*", "src/**/*"],
+      files: ["dist/**/*"],
       scripts: {
         build: "tsup",
         dev: "tsup --watch",
@@ -698,6 +699,62 @@ Thumbs.db
 
     return {
       path: '.gitignore',
+      content
+    };
+  }
+
+  /**
+   * 生成.npmignore文件
+   */
+  private async generateNpmignore(): Promise<GeneratedFile> {
+    const content = `# Source files (only include built files)
+src/
+
+# Development files
+tsconfig.json
+tsup.config.ts
+
+# Build artifacts that shouldn't be published
+*.tsbuildinfo
+
+# Tests
+__tests__/
+*.test.ts
+*.spec.ts
+
+# Documentation source
+docs/
+
+# Development dependencies
+.eslintrc*
+.prettierrc*
+jest.config.*
+
+# Environment files
+.env*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+.cache/
+.npm/
+.eslintcache
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+`;
+
+    return {
+      path: '.npmignore',
       content
     };
   }
