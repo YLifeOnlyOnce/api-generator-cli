@@ -438,7 +438,7 @@ async function example() {
       "Auto-generated API client from OpenAPI specification";
 
     // Read version from parent project's package.json
-    const parentPackageJsonPath = path.join(process.cwd(), "package.json");
+    const parentPackageJsonPath = path.join(__dirname, "..", "package.json");
     let currentVersion = specVersion;
     
     try {
@@ -448,8 +448,11 @@ async function example() {
           currentVersion = parentPackageJson.version;
           console.log(`Using parent project version: ${currentVersion}`);
         }
+      } else {
+        console.log(`Parent package.json not found at: ${parentPackageJsonPath}`);
       }
     } catch (error) {
+      console.log(`Error reading parent package.json: ${error instanceof Error ? error.message : String(error)}`);
       console.log(`Using spec version: ${specVersion}`);
     }
 

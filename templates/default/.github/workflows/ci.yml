@@ -66,16 +66,14 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        # 获取当前最新的tag版本号，如果没有tag则从1.0.0开始
-        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-        echo "Latest tag: $LATEST_TAG"
+        # 获取当前package.json的版本号
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        echo "Current package.json version: $CURRENT_VERSION"
         
         # 提取版本号并递增patch版本
-        CURRENT_VERSION=${LATEST_TAG#v}
-        IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
-        MAJOR=${VERSION_PARTS[0]:-1}
-        MINOR=${VERSION_PARTS[1]:-0}
-        PATCH=${VERSION_PARTS[2]:-0}
+        MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
+        MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
+        PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
         NEW_PATCH=$((PATCH + 1))
         NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
         NEW_TAG="v$NEW_VERSION"
