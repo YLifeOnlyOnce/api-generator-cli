@@ -62,25 +62,47 @@ jobs:
     - name: Update version and publish to npm (on main branch)
       if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
       run: |
-        cd generated
         # 配置 git 用户信息
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        # 自动更新 patch 版本号
-        npm version patch --no-git-tag-version
+        # 获取当前最新的tag版本号，如果没有tag则从1.0.0开始
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "Latest tag: $LATEST_TAG"
         
-        # 获取新版本号
-        NEW_VERSION=$(node -p "require('./package.json').version")
+        # 提取版本号并递增patch版本
+        CURRENT_VERSION=${LATEST_TAG#v}
+        IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+        MAJOR=${VERSION_PARTS[0]:-1}
+        MINOR=${VERSION_PARTS[1]:-0}
+        PATCH=${VERSION_PARTS[2]:-0}
+        NEW_PATCH=$((PATCH + 1))
+        NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+        NEW_TAG="v$NEW_VERSION"
+        
         echo "New version: $NEW_VERSION"
+        echo "New tag: $NEW_TAG"
+        
+        # 更新package.json中的版本号
+        npm version $NEW_VERSION --no-git-tag-version
+        
+        # 重新生成代码（使用新版本号）
+        npm run generate
+        
+        # 构建生成的包
+        cd generated
+        npm run build
         
         # 发布到 npm
         npm publish --access public
         
-        # 提交版本变更到 git
-        git add package.json
+        # 返回根目录，创建git tag并推送
+        cd ..
+        git add .
         git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
-        git push
+        git tag $NEW_TAG
+        git push origin main
+        git push origin $NEW_TAG
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

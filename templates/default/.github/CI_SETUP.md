@@ -94,11 +94,14 @@ npm run ci:full
 
 ### 自动版本管理
 
-GitHub Actions 会在每次推送到 main/master 分支时自动处理版本更新：
+GitHub Actions 会在每次推送到 main/master 分支时自动处理版本更新，使用 Git Tag 来管理版本：
 
-1. **代码生成阶段**：生成器会检查现有的 `package.json` 文件并保持当前版本号
-2. **发布阶段**：GitHub Actions 自动执行 `npm version patch` 来递增版本号
-3. **提交阶段**：新版本号会被提交回仓库
+1. **版本检测阶段**：获取当前最新的 git tag，如果没有则从 v1.0.0 开始
+2. **版本递增阶段**：自动递增 patch 版本号（例如：v1.0.0 → v1.0.1）
+3. **版本应用阶段**：更新 package.json 中的版本号
+4. **代码生成阶段**：生成器读取更新后的版本号并应用到生成的包中
+5. **发布阶段**：构建并发布生成的包到 npm
+6. **标签创建阶段**：创建新的 git tag 并推送到远程仓库
 
 工作流会自动管理版本号：
 - **自动版本更新**: 每次发布时自动增加 patch 版本号 (例如: 1.0.0 → 1.0.1)
@@ -110,12 +113,41 @@ GitHub Actions 会在每次推送到 main/master 分支时自动处理版本更�
 
 1. 开发者修改 OpenAPI 规范文件
 2. 推送到 main/master 分支触发 CI
-3. CI 生成新的 API 代码（保持现有版本号）
-4. CI 自动递增 patch 版本号
-5. CI 发布新版本到 npm
-6. CI 将版本变更提交回仓库
+3. CI 检测当前最新的 git tag 版本
+4. CI 自动递增 patch 版本号并更新 package.json
+5. CI 生成新的 API 代码（使用新版本号）
+6. CI 发布新版本到 npm
+7. CI 创建新的 git tag 并推送到远程仓库
 
 ### 手动版本管理
+
+使用 Git Tag 进行版本管理：
+
+```bash
+# 查看当前所有标签
+git tag
+
+# 查看最新标签
+git describe --tags --abbrev=0
+
+# 手动创建标签（patch版本）
+git tag v1.0.1
+git push origin v1.0.1
+
+# 手动创建标签（minor版本）
+git tag v1.1.0
+git push origin v1.1.0
+
+# 手动创建标签（major版本）
+git tag v2.0.0
+git push origin v2.0.0
+
+# 删除本地标签
+git tag -d v1.0.1
+
+# 删除远程标签
+git push origin --delete v1.0.1
+```
 
 如果需要手动控制版本号，可以在生成的包中使用以下脚本：
 ```bash

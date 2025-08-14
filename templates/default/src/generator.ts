@@ -436,16 +436,16 @@ async function example() {
       this.spec?.info?.description ||
       "Auto-generated API client from OpenAPI specification";
 
-    // Check if package.json already exists and preserve version
-    const existingPackageJsonPath = path.join(this.config.outputDir, "package.json");
+    // Read version from parent project's package.json
+    const parentPackageJsonPath = path.join(process.cwd(), "package.json");
     let currentVersion = specVersion;
     
     try {
-      if (await fs.pathExists(existingPackageJsonPath)) {
-        const existingPackageJson = await fs.readJson(existingPackageJsonPath);
-        if (existingPackageJson.version) {
-          currentVersion = existingPackageJson.version;
-          console.log(`Preserving existing version: ${currentVersion}`);
+      if (await fs.pathExists(parentPackageJsonPath)) {
+        const parentPackageJson = await fs.readJson(parentPackageJsonPath);
+        if (parentPackageJson.version) {
+          currentVersion = parentPackageJson.version;
+          console.log(`Using parent project version: ${currentVersion}`);
         }
       }
     } catch (error) {
